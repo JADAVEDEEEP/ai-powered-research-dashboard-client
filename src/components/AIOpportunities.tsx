@@ -1,4 +1,6 @@
-import { FiCpu, FiTarget, FiZap, FiTrendingUp } from "react-icons/fi";
+import { Cpu, Target, Zap, TrendingUp, ArrowDown } from "lucide-react";
+import { getDeptColor } from "../lib/insights";
+import { SectionHeading } from "./ui/primitives";
 
 interface Opportunity {
   department?: string;
@@ -9,147 +11,96 @@ interface Opportunity {
 
 interface Props {
   data: Opportunity[];
+  index?: string;
 }
 
-// Maps first word of department name to a Tailwind bg color
-const DEPT_COLORS: Record<string, string> = {
-  sales:       "bg-blue-600",
-  marketing:   "bg-indigo-600",
-  operations:  "bg-cyan-600",
-  hr:          "bg-teal-600",
-  finance:     "bg-emerald-600",
-  engineering: "bg-blue-700",
-  product:     "bg-violet-600",
-  customer:    "bg-sky-600",
-  legal:       "bg-slate-600",
-  it:          "bg-purple-600",
-};
-
-const getDeptColor = (dept?: string): string => {
-  if (!dept) return "bg-blue-600";
-  const key = dept.toLowerCase().split(/[\s/]/)[0];
-  return DEPT_COLORS[key] ?? "bg-blue-600";
-};
-
-export default function AIOpportunities({ data }: Props) {
+export default function AIOpportunities({ data, index }: Props) {
   if (!data || data.length === 0) return null;
 
   return (
-    <div className="bg-white rounded-3xl border border-blue-50 shadow-xl shadow-blue-50/50 p-8">
+    <div>
+      <SectionHeading
+        index={index}
+        eyebrow="Strategic Intelligence"
+        title="AI Opportunities"
+        aside={<span className="font-mono text-[11px] text-ink-4">{data.length} recommendations</span>}
+      />
 
-      {/* Header */}
-      <div className="mb-7">
-        <p
-          className="text-xs font-semibold text-blue-500 uppercase tracking-widest mb-1"
-          style={{ fontFamily: "'JetBrains Mono', monospace" }}
-        >
-          Strategic Intelligence
-        </p>
-        <h3
-          className="text-xl font-bold text-gray-900"
-          style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
-        >
-          AI Opportunities
-        </h3>
-      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+        {data.map((opp, i) => {
+          const c = getDeptColor(opp.department);
+          return (
+            <article
+              key={i}
+              className="panel group overflow-hidden transition-[border-color,transform] duration-300 hover:-translate-y-0.5"
+              style={{ ["--c" as string]: c }}
+            >
+              {/* glow */}
+              <div
+                aria-hidden
+                className="absolute -top-20 -right-20 w-56 h-56 rounded-full blur-3xl opacity-25 group-hover:opacity-40 transition-opacity"
+                style={{ background: c }}
+              />
+              <div aria-hidden className="absolute top-0 inset-x-0 h-px" style={{ background: `linear-gradient(90deg, transparent, ${c}, transparent)` }} />
 
-      {/* Cards grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        {data.map((opp, i) => (
-          <div
-            key={i}
-            className="rounded-2xl border border-blue-50 overflow-hidden hover:shadow-lg hover:shadow-blue-50/80 transition-all duration-200"
-          >
-            {/* Coloured header strip */}
-            <div className={`${getDeptColor(opp.department)} px-5 py-3.5 flex items-center justify-between`}>
-              <div className="flex items-center gap-2">
-                <FiCpu className="text-white/80 w-4 h-4" />
-                <span
-                  className="text-white font-semibold text-sm"
-                  style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
-                >
-                  {opp.department ?? `Opportunity ${i + 1}`}
-                </span>
+              {/* Header */}
+              <header className="relative flex items-center justify-between gap-3 px-5 sm:px-6 pt-5 pb-4">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <span
+                    className="inline-flex w-8 h-8 shrink-0 items-center justify-center rounded-lg"
+                    style={{ background: `${c}22`, boxShadow: `inset 0 0 0 1px ${c}55` }}
+                  >
+                    <Cpu className="w-4 h-4" style={{ color: c }} />
+                  </span>
+                  <h3 className="text-[15px] font-medium text-ink truncate">
+                    {opp.department ?? `Opportunity ${i + 1}`}
+                  </h3>
+                </div>
+                <span className="font-mono text-[11px] text-ink-4">#{String(i + 1).padStart(2, "0")}</span>
+              </header>
+
+              {/* Flow */}
+              <div className="relative px-5 sm:px-6 pb-6 space-y-1">
+                {opp.problem && (
+                  <div className="rounded-lg border border-line bg-white/[0.02] p-4">
+                    <div className="flex items-center gap-1.5 mb-1.5">
+                      <Target className="w-3.5 h-3.5 text-rose" />
+                      <span className="eyebrow !text-[10px] !text-rose">Problem</span>
+                    </div>
+                    <p className="text-[13.5px] leading-relaxed text-ink-2">{opp.problem}</p>
+                  </div>
+                )}
+
+                {opp.problem && opp.solution && (
+                  <div className="flex justify-center py-0.5" aria-hidden>
+                    <ArrowDown className="w-3.5 h-3.5 text-ink-4" />
+                  </div>
+                )}
+
+                {opp.solution && (
+                  <div className="rounded-lg border p-4" style={{ borderColor: `${c}40`, background: `${c}0d` }}>
+                    <div className="flex items-center gap-1.5 mb-1.5">
+                      <Zap className="w-3.5 h-3.5" style={{ color: c }} />
+                      <span className="eyebrow !text-[10px]" style={{ color: c }}>Solution</span>
+                    </div>
+                    <p className="text-[13.5px] leading-relaxed text-ink">{opp.solution}</p>
+                  </div>
+                )}
+
+                {opp.expectedImpact && (
+                  <div className="mt-3 flex items-start gap-3 rounded-lg bg-gradient-to-r from-mint/[0.12] to-transparent p-4 border-l-2 border-mint">
+                    <TrendingUp className="w-4 h-4 mt-0.5 text-mint shrink-0" />
+                    <div>
+                      <span className="eyebrow !text-[10px] !text-mint">Expected Impact</span>
+                      <p className="mt-1 text-[13.5px] font-medium leading-relaxed text-ink">{opp.expectedImpact}</p>
+                    </div>
+                  </div>
+                )}
               </div>
-              <span
-                className="text-white/50 text-xs"
-                style={{ fontFamily: "'JetBrains Mono', monospace" }}
-              >
-                #{String(i + 1).padStart(2, "0")}
-              </span>
-            </div>
-
-            {/* Content */}
-            <div className="p-5 space-y-4 bg-gradient-to-b from-blue-50/20 to-white">
-
-              {/* Problem */}
-              {opp.problem && (
-                <div>
-                  <div className="flex items-center gap-1.5 mb-1.5">
-                    <FiTarget className="w-3.5 h-3.5 text-red-400" />
-                    <span
-                      className="text-xs font-semibold text-red-500 uppercase tracking-wider"
-                      style={{ fontFamily: "'JetBrains Mono', monospace" }}
-                    >
-                      Problem
-                    </span>
-                  </div>
-                  <p
-                    className="text-sm text-gray-600 leading-relaxed"
-                    style={{ fontFamily: "'Inter', sans-serif" }}
-                  >
-                    {opp.problem}
-                  </p>
-                </div>
-              )}
-
-              {/* Solution */}
-              {opp.solution && (
-                <div>
-                  <div className="flex items-center gap-1.5 mb-1.5">
-                    <FiZap className="w-3.5 h-3.5 text-blue-500" />
-                    <span
-                      className="text-xs font-semibold text-blue-500 uppercase tracking-wider"
-                      style={{ fontFamily: "'JetBrains Mono', monospace" }}
-                    >
-                      Solution
-                    </span>
-                  </div>
-                  <p
-                    className="text-sm text-gray-600 leading-relaxed"
-                    style={{ fontFamily: "'Inter', sans-serif" }}
-                  >
-                    {opp.solution}
-                  </p>
-                </div>
-              )}
-
-              {/* Expected Impact */}
-              {opp.expectedImpact && (
-                <div className="bg-emerald-50 rounded-xl p-3.5 border border-emerald-100">
-                  <div className="flex items-center gap-1.5 mb-1.5">
-                    <FiTrendingUp className="w-3.5 h-3.5 text-emerald-600" />
-                    <span
-                      className="text-xs font-semibold text-emerald-600 uppercase tracking-wider"
-                      style={{ fontFamily: "'JetBrains Mono', monospace" }}
-                    >
-                      Expected Impact
-                    </span>
-                  </div>
-                  <p
-                    className="text-sm text-emerald-700 font-medium leading-relaxed"
-                    style={{ fontFamily: "'Inter', sans-serif" }}
-                  >
-                    {opp.expectedImpact}
-                  </p>
-                </div>
-              )}
-
-            </div>
-          </div>
-        ))}
+            </article>
+          );
+        })}
       </div>
-
     </div>
   );
 }

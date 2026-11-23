@@ -1,4 +1,5 @@
-import { FiPackage, FiActivity, FiNavigation, FiInfo } from "react-icons/fi";
+import { Package, Activity, Navigation, Info } from "lucide-react";
+import { SectionHeading } from "./ui/primitives";
 
 interface BusinessInfoData {
   majorOfferings?: string[];
@@ -9,6 +10,7 @@ interface BusinessInfoData {
 
 interface Props {
   data: BusinessInfoData;
+  index?: string;
 }
 
 // ─── Sub-component for each list section ─────────────────────────────────────
@@ -17,32 +19,31 @@ interface SectionProps {
   icon: React.ElementType;
   title: string;
   items?: string[];
-  iconBg: string;
+  color: string;
 }
 
-function InfoSection({ icon: Icon, title, items, iconBg }: SectionProps) {
+function InfoSection({ icon: Icon, title, items, color }: SectionProps) {
   if (!items || items.length === 0) return null;
   return (
-    <div>
-      <div className="flex items-center gap-2 mb-3">
-        <div className={`w-7 h-7 rounded-lg ${iconBg} flex items-center justify-center shrink-0`}>
-          <Icon className="w-3.5 h-3.5 text-white" />
-        </div>
-        <h4
-          className="font-semibold text-gray-800 text-sm"
-          style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
-        >
-          {title}
-        </h4>
-      </div>
-      <ul className="space-y-2 pl-1">
-        {items.map((item, i) => (
-          <li
-            key={i}
-            className="flex items-start gap-2.5 text-sm text-gray-600 leading-relaxed"
-            style={{ fontFamily: "'Inter', sans-serif" }}
+    <div className="relative p-5 sm:p-7">
+      <div className="flex items-center justify-between gap-3 mb-5">
+        <div className="flex items-center gap-2.5">
+          <span
+            className="inline-flex w-8 h-8 items-center justify-center rounded-lg"
+            style={{ background: `${color}1f`, boxShadow: `inset 0 0 0 1px ${color}40` }}
           >
-            <span className="mt-2 w-1.5 h-1.5 rounded-full bg-blue-300 shrink-0" />
+            <Icon className="w-4 h-4" style={{ color }} />
+          </span>
+          <h3 className="text-[15px] font-medium text-ink">{title}</h3>
+        </div>
+        <span className="font-mono text-[11px] text-ink-4 tabular-nums">
+          {String(items.length).padStart(2, "0")}
+        </span>
+      </div>
+      <ul className="space-y-3">
+        {items.map((item, i) => (
+          <li key={i} className="flex items-start gap-3 text-[14px] leading-relaxed text-ink-2">
+            <span className="mt-[9px] w-3 h-px shrink-0" style={{ background: color }} />
             {item}
           </li>
         ))}
@@ -53,54 +54,24 @@ function InfoSection({ icon: Icon, title, items, iconBg }: SectionProps) {
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
-export default function BusinessInformation({ data }: Props) {
+export default function BusinessInformation({ data, index }: Props) {
+  const blocks = [
+    { icon: Package, title: "Major Offerings", items: data.majorOfferings, color: "#8f7dff" },
+    { icon: Activity, title: "Recent Developments", items: data.recentDevelopments, color: "#5cc8ff" },
+    { icon: Navigation, title: "Expansion Plans", items: data.expansionPlans, color: "#4fe3c1" },
+    { icon: Info, title: "Important Public Information", items: data.importantPublicInformation, color: "#ffb547" },
+  ].filter((b) => b.items && b.items.length > 0);
+
   return (
-    <div className="bg-white rounded-3xl border border-blue-50 shadow-xl shadow-blue-50/50 p-8">
-
-      {/* Header */}
-      <div className="mb-7">
-        <p
-          className="text-xs font-semibold text-blue-500 uppercase tracking-widest mb-1"
-          style={{ fontFamily: "'JetBrains Mono', monospace" }}
-        >
-          Business Profile
-        </p>
-        <h3
-          className="text-xl font-bold text-gray-900"
-          style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
-        >
-          Business Information
-        </h3>
-      </div>
-
-      {/* 2-column grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <InfoSection
-          icon={FiPackage}
-          title="Major Offerings"
-          items={data.majorOfferings}
-          iconBg="bg-blue-600"
-        />
-        <InfoSection
-          icon={FiActivity}
-          title="Recent Developments"
-          items={data.recentDevelopments}
-          iconBg="bg-indigo-600"
-        />
-        <InfoSection
-          icon={FiNavigation}
-          title="Expansion Plans"
-          items={data.expansionPlans}
-          iconBg="bg-violet-600"
-        />
-        <InfoSection
-          icon={FiInfo}
-          title="Important Public Information"
-          items={data.importantPublicInformation}
-          iconBg="bg-cyan-600"
-        />
-      </div>
-
+    <div>
+      <SectionHeading index={index} eyebrow="Business Profile" title="Business Information" />
+      {blocks.length > 0 && (
+        <div className="panel overflow-hidden grid md:grid-cols-2 [&>*]:border-line [&>*:not(:last-child)]:border-b md:[&>*:not(:last-child)]:border-b-0 md:[&>*:nth-child(odd)]:border-r md:[&>*:nth-child(-n+2)]:border-b">
+          {blocks.map((b) => (
+            <InfoSection key={b.title} {...b} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

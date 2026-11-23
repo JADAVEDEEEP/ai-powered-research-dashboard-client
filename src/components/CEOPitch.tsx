@@ -1,4 +1,6 @@
-import { FiMail, FiUser } from "react-icons/fi";
+import { useState } from "react";
+import { Mail, Copy, Check } from "lucide-react";
+import { SectionHeading } from "./ui/primitives";
 
 interface CEOPitchData {
   subject?: string;
@@ -11,9 +13,11 @@ interface CEOPitchData {
 interface Props {
   data: CEOPitchData;
   companyName?: string;
+  index?: string;
 }
 
-export default function CEOPitch({ data, companyName }: Props) {
+export default function CEOPitch({ data, companyName, index }: Props) {
+  const [copied, setCopied] = useState(false);
   const today = new Date().toLocaleDateString("en-US", {
     weekday: "long",
     year: "numeric",
@@ -21,125 +25,113 @@ export default function CEOPitch({ data, companyName }: Props) {
     day: "numeric",
   });
 
+  const to = `CEO / Executive Leadership${companyName ? `, ${companyName}` : ""}`;
+  const subject = data.subject ?? "AI Transformation Opportunity";
+
+  const sections = [
+    { key: "introduction", label: "Introduction", value: data.introduction },
+    { key: "opportunities", label: "Opportunities", value: data.opportunities },
+    { key: "recommendations", label: "Recommendations", value: data.recommendations, highlight: true },
+    { key: "conclusion", label: "Conclusion", value: data.conclusion },
+  ];
+
+  const copy = async () => {
+    const text = [
+      `To: ${to}`,
+      `Subject: ${subject}`,
+      `Date: ${today}`,
+      "",
+      ...sections.filter((s) => s.value).map((s) => s.value as string),
+      "",
+      "— AI Research Agent",
+    ].join("\n\n");
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1800);
+    } catch {
+      /* clipboard unavailable */
+    }
+  };
+
   return (
-    <div className="bg-white rounded-3xl border border-blue-50 shadow-xl shadow-blue-50/50 overflow-hidden">
+    <div>
+      <SectionHeading
+        index={index}
+        eyebrow="Executive Communication"
+        title="CEO Pitch Letter"
+        aside={
+          <button
+            type="button"
+            onClick={copy}
+            className="no-print inline-flex items-center gap-2 rounded-lg border border-line-strong px-3 py-2 text-[12.5px] text-ink-2 hover:text-ink hover:border-iris/50 hover:bg-iris/10 transition-colors"
+          >
+            {copied ? <Check className="w-3.5 h-3.5 text-mint" /> : <Copy className="w-3.5 h-3.5" />}
+            {copied ? "Copied" : "Copy letter"}
+          </button>
+        }
+      />
 
-      {/* Gradient header */}
-      <div className="bg-gradient-to-r from-indigo-600 via-blue-600 to-blue-700 px-8 py-6">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center border border-white/10">
-            <FiMail className="text-white w-5 h-5" />
-          </div>
-          <div>
-            <p
-              className="text-blue-200 text-xs font-semibold uppercase tracking-widest"
-              style={{ fontFamily: "'JetBrains Mono', monospace" }}
-            >
-              Executive Communication
-            </p>
-            <h3
-              className="text-xl font-bold text-white"
-              style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
-            >
-              CEO Pitch Letter
-            </h3>
-          </div>
-        </div>
-      </div>
+      <div className="relative">
+        {/* stacked-paper graphic */}
+        <div aria-hidden className="absolute inset-x-6 -bottom-2 top-4 rounded-xl bg-[#d9d3c6]/20 rotate-[0.6deg]" />
+        <div aria-hidden className="absolute -inset-8 bg-[radial-gradient(closest-side,rgba(143,125,255,0.25),transparent)] blur-2xl" />
 
-      {/* Letter body */}
-      <div className="p-8">
-        <div className="max-w-3xl mx-auto border border-blue-100 rounded-2xl overflow-hidden">
+        <article className="relative overflow-hidden rounded-xl bg-[#f4f1ea] text-[#1b1d26] shadow-[0_40px_80px_-30px_rgba(0,0,0,0.8)]">
+          {/* letterhead */}
+          <header className="flex items-center justify-between gap-4 px-6 sm:px-12 pt-8 sm:pt-10">
+            <div className="flex items-center gap-2.5">
+              <span className="inline-flex w-8 h-8 items-center justify-center rounded-full bg-[#1b1d26] text-[#f4f1ea]">
+                <Mail className="w-4 h-4" />
+              </span>
+              <span className="font-mono text-[10.5px] tracking-[0.16em] uppercase text-[#6b6a66]">
+                Confidential · Executive brief
+              </span>
+            </div>
+            <span className="hidden sm:block font-display italic text-2xl text-[#6a56f5]">Research Agent</span>
+          </header>
 
-          {/* Email header metadata */}
-          <div className="bg-blue-50/60 px-6 py-4 border-b border-blue-100 space-y-2">
+          {/* metadata */}
+          <dl className="mx-6 sm:mx-12 mt-7 border-y border-[#1b1d26]/10 divide-y divide-[#1b1d26]/10">
             {[
-              {
-                label: "To:",
-                value: `CEO / Executive Leadership${companyName ? `, ${companyName}` : ""}`,
-              },
-              {
-                label: "Subject:",
-                value: data.subject ?? "AI Transformation Opportunity",
-              },
-              {
-                label: "Date:",
-                value: today,
-              },
-            ].map(({ label, value }) => (
-              <div key={label} className="flex items-start gap-3 text-sm">
-                <span
-                  className="shrink-0 w-20 text-blue-500 font-semibold"
-                  style={{ fontFamily: "'JetBrains Mono', monospace" }}
-                >
-                  {label}
-                </span>
-                <span
-                  className={`text-gray-800 ${label === "Subject:" ? "font-semibold" : ""}`}
-                  style={{ fontFamily: "'Inter', sans-serif" }}
-                >
-                  {value}
-                </span>
+              { label: "To", value: to },
+              { label: "Subject", value: subject, strong: true },
+              { label: "Date", value: today },
+            ].map(({ label, value, strong }) => (
+              <div key={label} className="grid grid-cols-[84px_1fr] gap-3 py-2.5 text-[14px]">
+                <dt className="font-mono text-[11px] uppercase tracking-wider text-[#8a877f] pt-0.5">{label}</dt>
+                <dd className={strong ? "font-semibold" : "text-[#3b3d47]"}>{value}</dd>
               </div>
             ))}
-          </div>
+          </dl>
 
-          {/* Letter sections */}
-          <div className="px-6 py-7 space-y-6 bg-gradient-to-b from-blue-50/10 to-white">
-
-            {[
-              { key: "introduction",   label: "Introduction",   value: data.introduction   },
-              { key: "opportunities",  label: "Opportunities",  value: data.opportunities  },
-              { key: "recommendations",label: "Recommendations", value: data.recommendations, highlight: true },
-              { key: "conclusion",     label: "Conclusion",     value: data.conclusion     },
-            ].map(({ key, label, value, highlight }) =>
+          {/* body */}
+          <div className="px-6 sm:px-12 py-8 sm:py-10 space-y-7 max-w-3xl">
+            <h3 className="font-display text-3xl sm:text-4xl leading-tight tracking-[-0.01em]">{subject}</h3>
+            {sections.map(({ key, label, value, highlight }) =>
               value ? (
-                <div key={key} className={highlight ? "bg-blue-50 rounded-xl p-4 border border-blue-100" : ""}>
-                  <p
-                    className={`text-xs font-semibold uppercase tracking-widest mb-2 ${
-                      highlight ? "text-blue-600" : "text-blue-400"
-                    }`}
-                    style={{ fontFamily: "'JetBrains Mono', monospace" }}
-                  >
-                    {label}
-                  </p>
-                  <p
-                    className="text-sm text-gray-700 leading-relaxed"
-                    style={{ fontFamily: "'Inter', sans-serif" }}
-                  >
-                    {value}
-                  </p>
-                </div>
+                highlight ? (
+                  <blockquote key={key} className="relative border-l-[3px] border-[#6a56f5] bg-[#6a56f5]/[0.07] rounded-r-lg py-4 pl-5 pr-4">
+                    <p className="font-mono text-[10.5px] uppercase tracking-[0.16em] text-[#6a56f5] mb-2">{label}</p>
+                    <p className="text-[15px] leading-[1.75] text-[#1b1d26]">{value}</p>
+                  </blockquote>
+                ) : (
+                  <section key={key}>
+                    <p className="font-mono text-[10.5px] uppercase tracking-[0.16em] text-[#8a877f] mb-2">{label}</p>
+                    <p className="text-[15px] leading-[1.75] text-[#3b3d47]">{value}</p>
+                  </section>
+                )
               ) : null
             )}
 
-            {/* Signature */}
-            <div className="pt-4 border-t border-blue-100">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-sm">
-                  <FiUser className="text-white w-4 h-4" />
-                </div>
-                <div>
-                  <p
-                    className="text-sm font-bold text-gray-900"
-                    style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
-                  >
-                    AI Research Agent
-                  </p>
-                  <p
-                    className="text-xs text-gray-400"
-                    style={{ fontFamily: "'Inter', sans-serif" }}
-                  >
-                    Powered by Advanced AI Analysis
-                  </p>
-                </div>
-              </div>
+            {/* signature */}
+            <div className="pt-6 border-t border-[#1b1d26]/10">
+              <p className="font-display italic text-3xl text-[#1b1d26]">AI Research Agent</p>
+              <p className="mt-1 text-[12.5px] text-[#8a877f]">Powered by Advanced AI Analysis</p>
             </div>
-
           </div>
-        </div>
+        </article>
       </div>
-
     </div>
   );
 }

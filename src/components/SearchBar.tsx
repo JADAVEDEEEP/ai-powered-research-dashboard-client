@@ -1,12 +1,15 @@
 import { useState, FormEvent } from "react";
-import { FiSearch, FiLoader } from "react-icons/fi";
+import { Search, Loader2, ArrowRight, CornerDownLeft } from "lucide-react";
 
 interface SearchBarProps {
   onSearch: (company: string) => void;
   isLoading: boolean;
+  inputId?: string;
 }
 
-export default function SearchBar({ onSearch, isLoading }: SearchBarProps) {
+const EXAMPLES = ["Tesla", "Apple", "OpenAI"];
+
+export default function SearchBar({ onSearch, isLoading, inputId = "hero-search" }: SearchBarProps) {
   const [value, setValue] = useState("");
   const [error, setError] = useState("");
 
@@ -24,11 +27,20 @@ export default function SearchBar({ onSearch, isLoading }: SearchBarProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="w-full max-w-2xl mx-auto">
-      <div className="flex items-center gap-3">
-        <div className="relative flex-1">
-          <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 pointer-events-none" />
+    <form onSubmit={handleSubmit} className="w-full" noValidate>
+      <div className="group relative">
+        {/* animated gradient rim */}
+        <div
+          aria-hidden
+          className="absolute -inset-px rounded-[14px] bg-gradient-to-r from-iris/60 via-sky/30 to-mint/50 opacity-40 blur-[1px] transition-opacity duration-300 group-focus-within:opacity-100"
+        />
+        <div className="relative flex items-center gap-2 rounded-[13px] bg-panel-2/95 backdrop-blur-xl p-1.5 pl-4 shadow-[0_20px_60px_-20px_rgba(106,86,245,0.5)]">
+          <Search className="w-5 h-5 text-ink-3 shrink-0" aria-hidden />
+          <label htmlFor={inputId} className="sr-only">
+            Company name
+          </label>
           <input
+            id={inputId}
             type="text"
             value={value}
             onChange={(e) => {
@@ -37,37 +49,60 @@ export default function SearchBar({ onSearch, isLoading }: SearchBarProps) {
             }}
             placeholder="Enter company name (e.g. Tesla, Apple, OpenAI)"
             disabled={isLoading}
-            className="w-full pl-12 pr-4 py-4 bg-white rounded-2xl border border-blue-100 shadow-lg shadow-blue-50/80 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/60 focus:border-blue-300 transition-all duration-200 text-base disabled:opacity-60 disabled:cursor-not-allowed"
-            style={{ fontFamily: "'Inter', sans-serif" }}
+            aria-invalid={!!error}
+            aria-describedby={error ? `${inputId}-error` : undefined}
+            autoComplete="off"
+            className="min-w-0 flex-1 bg-transparent py-3 text-[15px] sm:text-base text-ink placeholder:text-ink-4 focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed"
           />
+          <kbd className="hidden md:inline-flex items-center gap-1 rounded-md border border-line-strong px-1.5 py-1 font-mono text-[10px] text-ink-4">
+            <CornerDownLeft className="w-3 h-3" /> enter
+          </kbd>
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="relative inline-flex items-center gap-2 overflow-hidden rounded-[10px] bg-gradient-to-b from-iris to-iris-2 px-4 sm:px-5 py-3 text-sm font-semibold text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.25)] transition-[transform,filter] hover:brightness-110 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed whitespace-nowrap"
+          >
+            {isLoading ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <ArrowRight className="w-4 h-4" />
+            )}
+            <span className="hidden sm:inline">{isLoading ? "Analyzing..." : "Analyze"}</span>
+            <span className="sr-only sm:hidden">{isLoading ? "Analyzing" : "Analyze"}</span>
+          </button>
         </div>
-
-        <button
-          type="submit"
-          disabled={isLoading}
-          className="flex items-center gap-2 px-6 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-2xl shadow-lg shadow-blue-200 hover:shadow-blue-300/60 transition-all duration-200 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed whitespace-nowrap"
-          style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
-        >
-          {isLoading ? (
-            <FiLoader className="w-5 h-5 animate-spin" />
-          ) : (
-            <FiSearch className="w-5 h-5" />
-          )}
-          <span className="hidden sm:inline">
-            {isLoading ? "Analyzing..." : "Analyze"}
-          </span>
-        </button>
       </div>
 
-      {error && (
-        <p
-          className="mt-2.5 ml-1 text-sm text-red-500 flex items-center gap-1.5"
-          style={{ fontFamily: "'Inter', sans-serif" }}
-        >
-          <span className="text-base">!</span>
-          {error}
-        </p>
-      )}
+      <div className="mt-3 flex flex-wrap items-center gap-2 min-h-[28px]">
+        {error ? (
+          <p
+            id={`${inputId}-error`}
+            role="alert"
+            className="flex items-center gap-2 text-sm text-rose"
+          >
+            <span className="inline-flex w-4 h-4 items-center justify-center rounded-full bg-rose/15 text-[11px] font-bold">!</span>
+            {error}
+          </p>
+        ) : (
+          <>
+            <span className="font-mono text-[11px] text-ink-4 mr-1">TRY</span>
+            {EXAMPLES.map((ex) => (
+              <button
+                key={ex}
+                type="button"
+                disabled={isLoading}
+                onClick={() => {
+                  setValue(ex);
+                  document.getElementById(inputId)?.focus();
+                }}
+                className="rounded-md border border-line px-2.5 py-1 text-xs text-ink-3 hover:text-ink hover:border-iris/50 hover:bg-iris/10 transition-colors disabled:opacity-50"
+              >
+                {ex}
+              </button>
+            ))}
+          </>
+        )}
+      </div>
     </form>
   );
 }

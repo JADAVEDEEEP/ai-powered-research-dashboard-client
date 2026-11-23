@@ -1,4 +1,5 @@
-import { FiAlertTriangle } from "react-icons/fi";
+import { AlertTriangle } from "lucide-react";
+import { SectionHeading } from "./ui/primitives";
 
 interface Challenge {
   title?: string;
@@ -8,91 +9,63 @@ interface Challenge {
 
 interface Props {
   data: Challenge[];
+  index?: string;
 }
 
-// Colour palettes cycle per card index
-const CARD_STYLES = [
-  { bg: "from-red-50 to-orange-50",   border: "border-red-100",    icon: "text-red-500"    },
-  { bg: "from-amber-50 to-yellow-50", border: "border-amber-100",  icon: "text-amber-500"  },
-  { bg: "from-purple-50 to-violet-50",border: "border-purple-100", icon: "text-purple-500" },
-  { bg: "from-rose-50 to-pink-50",    border: "border-rose-100",   icon: "text-rose-500"   },
-  { bg: "from-slate-50 to-gray-50",   border: "border-slate-100",  icon: "text-slate-500"  },
-];
+// Accent cycles per row (purely decorative — not a severity rating)
+const ACCENT = ["#ff6b8b", "#ffb547", "#c9a8ff", "#ff8f6b", "#8a93a8"];
 
-export default function BusinessChallenges({ data }: Props) {
+export default function BusinessChallenges({ data, index }: Props) {
   if (!data || data.length === 0) return null;
 
   return (
-    <div className="bg-white rounded-3xl border border-blue-50 shadow-xl shadow-blue-50/50 p-8">
+    <div>
+      <SectionHeading
+        index={index}
+        eyebrow="Risk Assessment"
+        title="Business Challenges"
+        aside={<span className="font-mono text-[11px] text-ink-4">{data.length} identified</span>}
+      />
 
-      {/* Header */}
-      <div className="mb-7">
-        <p
-          className="text-xs font-semibold text-blue-500 uppercase tracking-widest mb-1"
-          style={{ fontFamily: "'JetBrains Mono', monospace" }}
-        >
-          Risk Assessment
-        </p>
-        <h3
-          className="text-xl font-bold text-gray-900"
-          style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
-        >
-          Business Challenges
-        </h3>
-      </div>
-
-      {/* Challenge cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <ol className="panel overflow-hidden">
         {data.map((challenge, i) => {
-          const style = CARD_STYLES[i % CARD_STYLES.length];
+          const c = ACCENT[i % ACCENT.length];
           return (
-            <div
+            <li
               key={i}
-              className={`bg-gradient-to-br ${style.bg} ${style.border} border rounded-2xl p-5 hover:shadow-md transition-shadow duration-200`}
+              className="group relative grid md:grid-cols-[72px_1fr_1fr] gap-x-8 gap-y-3 px-5 sm:px-7 py-6 border-line [&:not(:last-child)]:border-b transition-colors hover:bg-white/[0.015]"
             >
-              {/* Title row */}
-              <div className="flex items-start gap-3 mb-3">
-                <FiAlertTriangle className={`w-5 h-5 mt-0.5 shrink-0 ${style.icon}`} />
-                <h4
-                  className="font-bold text-gray-900 text-sm leading-snug"
-                  style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
-                >
-                  {challenge.title ?? `Challenge ${i + 1}`}
-                </h4>
+              <span
+                aria-hidden
+                className="absolute left-0 top-0 bottom-0 w-[2px] opacity-60 group-hover:opacity-100 transition-opacity"
+                style={{ background: `linear-gradient(${c}, transparent)` }}
+              />
+              <div className="flex md:flex-col items-center md:items-start gap-3">
+                <span className="font-display text-4xl leading-none" style={{ color: c }}>
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <AlertTriangle className="w-4 h-4 md:mt-2" style={{ color: c }} />
               </div>
 
-              {/* Description */}
-              {challenge.description && (
-                <p
-                  className="text-gray-600 text-sm leading-relaxed mb-3"
-                  style={{ fontFamily: "'Inter', sans-serif" }}
-                >
-                  {challenge.description}
-                </p>
-              )}
+              <div className="min-w-0">
+                <h3 className="text-[16px] font-medium leading-snug text-ink">
+                  {challenge.title ?? `Challenge ${i + 1}`}
+                </h3>
+                {challenge.description && (
+                  <p className="mt-2 text-[14px] leading-relaxed text-ink-2">{challenge.description}</p>
+                )}
+              </div>
 
-              {/* Reasoning */}
               {challenge.reasoning && (
-                <div className="border-t border-black/5 pt-3">
-                  <p
-                    className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5"
-                    style={{ fontFamily: "'JetBrains Mono', monospace" }}
-                  >
-                    Reasoning
-                  </p>
-                  <p
-                    className="text-gray-600 text-sm leading-relaxed"
-                    style={{ fontFamily: "'Inter', sans-serif" }}
-                  >
-                    {challenge.reasoning}
-                  </p>
+                <div className="min-w-0 md:border-l md:border-line md:pl-6">
+                  <p className="eyebrow !text-[10px] mb-2">Reasoning</p>
+                  <p className="text-[13.5px] leading-relaxed text-ink-3">{challenge.reasoning}</p>
                 </div>
               )}
-            </div>
+            </li>
           );
         })}
-      </div>
-
+      </ol>
     </div>
   );
 }

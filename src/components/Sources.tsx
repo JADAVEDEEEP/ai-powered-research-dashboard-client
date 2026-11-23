@@ -1,101 +1,60 @@
-import { FiExternalLink, FiLink } from "react-icons/fi";
+import { ArrowUpRight } from "lucide-react";
+import { getDomain, getSourceTitle, getSourceUrl, type SourceItem, monogramColor } from "../lib/insights";
+import { SectionHeading } from "./ui/primitives";
 
 interface Props {
   data: SourceItem[];
+  index?: string;
 }
 
-type SourceItem =
-  | string
-  | {
-      title?: string;
-      url?: string;
-    };
-
-// Extract a readable domain from a URL
-const getDomain = (url: string): string => {
-  try {
-    return new URL(url).hostname.replace(/^www\./, "");
-  } catch {
-    return url;
-  }
-};
-
-const getSourceUrl = (source: SourceItem): string => {
-  return typeof source === "string" ? source : source.url ?? "";
-};
-
-const getSourceTitle = (source: SourceItem): string => {
-  if (typeof source === "string") return getDomain(source);
-
-  return source.title || getDomain(source.url ?? "");
-};
-
-export default function Sources({ data }: Props) {
+export default function Sources({ data, index }: Props) {
   if (!data || data.length === 0) return null;
 
+  const items = data
+    .map((source) => ({ url: getSourceUrl(source), title: getSourceTitle(source) }))
+    .filter((s) => !!s.url);
+
   return (
-    <div className="bg-white rounded-3xl border border-blue-50 shadow-xl shadow-blue-50/50 p-8">
+    <div>
+      <SectionHeading
+        index={index}
+        eyebrow="Research Sources"
+        title="Sources & References"
+        aside={<span className="font-mono text-[11px] text-ink-4">{items.length} links</span>}
+      />
 
-      {/* Header */}
-      <div className="mb-7">
-        <p
-          className="text-xs font-semibold text-blue-500 uppercase tracking-widest mb-1"
-          style={{ fontFamily: "'JetBrains Mono', monospace" }}
-        >
-          Research Sources
-        </p>
-        <h3
-          className="text-xl font-bold text-gray-900"
-          style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
-        >
-          Sources & References
-        </h3>
-      </div>
-
-      {/* Link grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        {data.map((source, i) => {
-          const url = getSourceUrl(source);
-          const title = getSourceTitle(source);
-
-          if (!url) return null;
-
+      <ol className="panel overflow-hidden grid md:grid-cols-2">
+        {items.map(({ url, title }, i) => {
+          const domain = getDomain(url);
+          const c = monogramColor(domain);
           return (
-          <a
-            key={i}
-            href={url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-3 p-4 rounded-2xl border border-blue-100 bg-blue-50/30 hover:bg-blue-50 hover:border-blue-200 hover:shadow-md hover:shadow-blue-50 transition-all duration-200 group"
-          >
-            {/* Icon */}
-            <div className="shrink-0 w-9 h-9 rounded-xl bg-blue-100 flex items-center justify-center group-hover:bg-blue-200 transition-colors duration-200">
-              <FiLink className="w-4 h-4 text-blue-600" />
-            </div>
-
-            {/* Text */}
-            <div className="flex-1 min-w-0">
-              <p
-                className="text-sm font-semibold text-blue-700 truncate group-hover:text-blue-800 transition-colors"
-                style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+            <li key={i} className="border-line border-b md:[&:nth-child(odd)]:border-r">
+              <a
+                href={url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group flex items-center gap-4 px-5 py-4 transition-colors hover:bg-white/[0.03] focus-visible:bg-white/[0.03]"
               >
-                {title}
-              </p>
-              <p
-                className="text-xs text-gray-400 truncate"
-                style={{ fontFamily: "'Inter', sans-serif" }}
-              >
-                {url}
-              </p>
-            </div>
-
-            {/* External arrow */}
-            <FiExternalLink className="shrink-0 w-4 h-4 text-gray-300 group-hover:text-blue-500 transition-colors duration-200" />
-          </a>
+                <span className="font-mono text-[11px] text-ink-4 w-5 tabular-nums">{String(i + 1).padStart(2, "0")}</span>
+                <span
+                  aria-hidden
+                  className="inline-flex w-8 h-8 shrink-0 items-center justify-center rounded-md font-mono text-[12px] font-medium"
+                  style={{ color: c, background: `${c}18`, boxShadow: `inset 0 0 0 1px ${c}35` }}
+                >
+                  {domain[0]?.toUpperCase()}
+                </span>
+                <span className="flex-1 min-w-0">
+                  <span className="block text-[14px] font-medium text-ink truncate group-hover:text-iris transition-colors">
+                    {title}
+                  </span>
+                  <span className="block font-mono text-[11px] text-ink-4 truncate">{url}</span>
+                </span>
+                <ArrowUpRight className="w-4 h-4 shrink-0 text-ink-4 transition-transform group-hover:text-iris group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+              </a>
+            </li>
           );
         })}
-      </div>
-
+      </ol>
     </div>
   );
 }
